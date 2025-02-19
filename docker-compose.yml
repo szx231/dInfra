@@ -1,0 +1,11 @@
+services:
+  database:
+    image: postgres:17.2-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - $PWD/database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: scrapp
+      POSTGRES_PASSWORD: scrapp
+      POSTGRES_DB: dating
