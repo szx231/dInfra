@@ -1,11 +1,29 @@
 services:
   database:
-    image: postgres:17.2-alpine
-    ports:
-      - 5432:5432
-    volumes:
-      - $PWD/database:/var/lib/postgresql/data
+    image: postgres:17-alpine
+    container_name: dating-database
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.tcp.routers.database.entrypoints=database'
+      - 'traefik.tcp.routers.database.rule=HostSNI(`*`)'
+      - 'traefik.tcp.services.database.loadBalancer.server.port=5432'
     environment:
       POSTGRES_USER: scrapp
       POSTGRES_PASSWORD: scrapp
-      POSTGRES_DB: dating
+      POSTGRES_DB: scrapp
+    volumes:
+      - $PWD/database:/var/lib/postgresql/data
+  traefik:
+    image: traefik:v3.3.3
+    command:
+      - '--api.insecure=true'
+      - '--global.checkNewVersion=true'
+      - '--global.sendAnonymousUsage=false'
+      - '--log.level=DEBUG'
+      - '--providers.docker.exposedByDefault=false'
+      - '--entryPoints.database.address=:5432'
+    ports:
+      - 8080:8080
+      - 5432:5432
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
