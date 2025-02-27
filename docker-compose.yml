@@ -13,6 +13,14 @@ services:
       POSTGRES_DB: scrapp
     volumes:
       - $PWD/database:/var/lib/postgresql/data
+  redis:
+    image: redis:7.4.2
+    container_name: dating-redis
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.tcp.routers.redis.entrypoints=redis'
+      - 'traefik.tcp.routers.redis.rule=HostSNI(`*`)'
+      - 'traefik.tcp.services.redis.loadBalancer.server.port=6379'
   traefik:
     image: traefik:v3.3.3
     command:
@@ -22,8 +30,10 @@ services:
       - '--log.level=DEBUG'
       - '--providers.docker.exposedByDefault=false'
       - '--entryPoints.database.address=:5432'
+      - '--entryPoints.redis.address=:6379'
     ports:
       - 8080:8080
       - 5432:5432
+      - 6379:6379
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
